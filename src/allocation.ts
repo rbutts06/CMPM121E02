@@ -18,6 +18,25 @@ const shift: shiftReport = {
   workers: 2,
 };
 
+interface bar {
+  text: string;
+  fontY: number;
+  color: string;
+  y: number;
+}
+
+const bars: bar[] = [{
+  text: `Production: ${shift.production}`,
+  fontY: 102,
+  color: "#27766b",
+  y: 110,
+}, {
+  text: `Consumption: ${shift.consumption}`,
+  fontY: 154,
+  color: "#a44d23",
+  y: 162,
+}];
+
 function resourcePlan(shift: shiftReport) {
   const supplyBalance = shift.production - shift.consumption;
 
@@ -25,10 +44,10 @@ function resourcePlan(shift: shiftReport) {
     `Assigned: ${workers}/6 · Production: ${shift.production} · Consumption: ${shift.consumption} · Balance: ${
       supplyBalance > 0 ? "+" : ""
     }${supplyBalance}`;
-  ui(shift);
+  ui();
 }
 
-function ui(shift: shiftReport) {
+function ui() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   for (let i = 0; i < 6; i++) {
     ctx.fillStyle = i < workers ? "#27766b" : "#c9d2c9";
@@ -40,13 +59,16 @@ function ui(shift: shiftReport) {
   ctx.fillStyle = "#233e43";
   ctx.font = "14px system-ui";
   ctx.fillText(`Producers: ${workers} / 6`, 18, 76);
-  ctx.fillText(`Production: ${shift.production}`, 18, 102);
-  ctx.fillStyle = "#27766b";
-  ctx.fillRect(18, 110, shift.production * 14, 20);
+  for (let i = 0; i < bars.length; i++) {
+    makeBar(bars[i]);
+  }
+}
+
+function makeBar(bars: bar) {
+  ctx.fillStyle = bars.color;
+  ctx.fillRect(18, bars.y, shift.consumption * 14, 20);
   ctx.fillStyle = "#233e43";
-  ctx.fillText(`Consumption: ${shift.consumption}`, 18, 154);
-  ctx.fillStyle = "#a44d23";
-  ctx.fillRect(18, 162, shift.consumption * 14, 20);
+  ctx.fillText(bars.text, 18, bars.fontY);
 }
 
 document.querySelector<HTMLButtonElement>("#allocation-less")!.onclick = () => {
