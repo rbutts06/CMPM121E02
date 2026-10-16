@@ -3,6 +3,9 @@ export {};
 const canvas = document.querySelector<HTMLCanvasElement>("#rover-canvas")!;
 const ctx = canvas.getContext("2d")!;
 const readout = document.querySelector<HTMLParagraphElement>("#rover-readout")!;
+const queue = document.querySelector<HTMLParagraphElement>(
+  "#rover-queue-status",
+)!;
 const headings = ["North", "East", "South", "West"];
 const x = { num: 2 };
 const y = { num: 2 };
@@ -17,6 +20,8 @@ const directions = [
 interface Command {
   execute(): void;
 }
+
+let commandQueue: Command[] = [];
 
 class right implements Command {
   execute(): void {
@@ -40,6 +45,11 @@ class forward implements Command {
 
 const moveForward = new forward();
 const rotateRight = new right();
+
+function clearQueue() {
+  commandQueue = [];
+  queue.textContent = "Empty";
+}
 
 function drawRover() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -66,15 +76,31 @@ function drawRover() {
 }
 
 document.querySelector<HTMLButtonElement>("#rover-forward")!.onclick = () => {
-  moveForward.execute();
+  if (commandQueue.length == 0) queue.textContent = "";
+  commandQueue.push(moveForward);
+  queue.textContent += "Forward ";
 };
 document.querySelector<HTMLButtonElement>("#rover-right")!.onclick = () => {
-  rotateRight.execute();
+  if (commandQueue.length == 0) queue.textContent = "";
+  commandQueue.push(rotateRight);
+  queue.textContent += "Right ";
+};
+
+document.querySelector<HTMLButtonElement>("#rover-run")!.onclick = () => {
+  for (const command of commandQueue) {
+    command.execute();
+  }
+  clearQueue();
+};
+
+document.querySelector<HTMLButtonElement>("#rover-clear")!.onclick = () => {
+  clearQueue();
 };
 document.querySelector<HTMLButtonElement>("#rover-reset")!.onclick = () => {
   x.num = 2;
   y.num = 2;
   direction = 0;
+  clearQueue();
   drawRover();
 };
 drawRover();
