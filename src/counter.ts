@@ -20,6 +20,8 @@ interface shield {
 }
 const shieldMax = 10;
 
+const shieldEvents = new EventTarget();
+
 function shieldSnap(): shield {
   return {
     health: count,
@@ -27,6 +29,11 @@ function shieldSnap(): shield {
     missing: shieldMax - count,
   };
 }
+
+shieldEvents.addEventListener("shield-changed", (event) => {
+  const shield = (event as CustomEvent<shield>).detail;
+  drawMeter(shield);
+});
 
 function drawMeter(snapshot: shield) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -57,7 +64,11 @@ function setCount(next: number) {
   if (bounded === count) return;
   count = bounded;
   const snapshot = shieldSnap();
-  drawMeter(snapshot);
+  shieldEvents.dispatchEvent(
+    new CustomEvent("shield-changed", {
+      detail: snapshot,
+    }),
+  );
   if (panel) updateStats(snapshot);
 }
 
