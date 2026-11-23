@@ -6,24 +6,31 @@ const readout = document.querySelector<HTMLParagraphElement>("#rover-readout")!;
 const queue = document.querySelector<HTMLParagraphElement>(
   "#rover-queue-status",
 )!;
-const headings = ["North", "East", "South", "West"];
-const x = { num: 2 };
-const y = { num: 2 };
+let x = 2;
+let y = 2;
+let commandQueue: Command[] = [];
 let direction = 0;
 
-const directions = [
-  { direction: "North", offset: -1, axis: y },
-  { direction: "East", offset: 1, axis: x },
-  { direction: "South", offset: 1, axis: y },
-  { direction: "West", offset: -1, axis: x },
-];
 interface Command {
+  name: string;
   execute(): void;
 }
 
-let commandQueue: Command[] = [];
+interface Direction {
+  heading: string;
+  dx: number;
+  dy: number;
+}
+
+const directions: Direction[] = [
+  { heading: "North", dx: 0, dy: -1 },
+  { heading: "East", dx: 1, dy: 0 },
+  { heading: "South", dx: 0, dy: 1 },
+  { heading: "West", dx: -1, dy: 0 },
+];
 
 class right implements Command {
+  name: string = "Right";
   execute(): void {
     direction = (direction + 1) % 4;
     drawRover();
@@ -31,20 +38,17 @@ class right implements Command {
 }
 
 class forward implements Command {
+  name: string = "Forward";
   execute(): void {
-    directions[direction].axis.num = Math.max(
-      0,
-      Math.min(
-        4,
-        directions[direction].axis.num + directions[direction].offset,
-      ),
-    );
+    const currectDirection: Direction = directions[direction];
+    x = Math.max(0, Math.min(4, x + currectDirection.dx));
+    y = Math.max(0, Math.min(4, y + currectDirection.dy));
     drawRover();
   }
 }
 
-const moveForward = new forward();
-const rotateRight = new right();
+const moveForward: Command = new forward();
+const rotateRight: Command = new right();
 
 function clearQueue() {
   commandQueue = [];
@@ -60,7 +64,7 @@ function drawRover() {
     }
   }
   ctx.save();
-  ctx.translate(38 + x.num * 56, 38 + y.num * 56);
+  ctx.translate(38 + x * 56, 38 + y * 56);
   ctx.rotate(direction * Math.PI / 2);
   ctx.fillStyle = "#27766b";
   ctx.beginPath();
@@ -70,8 +74,8 @@ function drawRover() {
   ctx.closePath();
   ctx.fill();
   ctx.restore();
-  readout.textContent = `Position: (${x.num}, ${y.num}) · Facing: ${
-    headings[direction]
+  readout.textContent = `Position: (${x}, ${y}) · Facing: ${
+    directions[direction].heading
   }`;
 }
 
@@ -97,8 +101,8 @@ document.querySelector<HTMLButtonElement>("#rover-clear")!.onclick = () => {
   clearQueue();
 };
 document.querySelector<HTMLButtonElement>("#rover-reset")!.onclick = () => {
-  x.num = 2;
-  y.num = 2;
+  x = 2;
+  y = 2;
   direction = 0;
   clearQueue();
   drawRover();
